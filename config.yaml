@@ -1,0 +1,31 @@
+# All paths are relative to the project root.
+paths:
+  raw_data: data/raw/student-por.csv
+  model: models/model.joblib
+  figures: reports/figures
+
+seed: 42
+
+data:
+  separator: ";"
+  target: G3
+  # Period grades are only known after the start of the year: leakage for our use case.
+  drop_columns: [G1, G2]
+  pass_mark: 10
+  test_size: 0.2
+
+cv:
+  n_splits: 5
+
+# Hyperparameter grids for GridSearchCV (filled in during model comparison).
+grids:
+  ridge:
+    alpha: [0.01, 0.1, 1, 10, 100]
+  lasso:
+    alpha: [0.001, 0.01, 0.1, 1]
+  knn:
+    n_neighbors: [3, 5, 10, 20, 40]
+  linear_svr:
+    C: [0.01, 0.1, 1, 10]
+  huber:
+    epsilon: [1.1, 1.35, 1.5, 2.0]
