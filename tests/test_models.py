@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.dummy import DummyRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 
 from student_performance.data import DatasetLoader
-from student_performance.models import Trainer
+from student_performance.models import Trainer, candidate_models
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "raw" / "student-por.csv"
 
@@ -50,4 +50,28 @@ def test_save_and_load_give_same_predictions(splits: Splits, tmp_path: Path) -> 
     trainer.fit(LinearRegression(), X_train, y_train)
     trainer.save(tmp_path / "model.joblib")
     loaded = Trainer.load(tmp_path / "model.joblib")
-    assert np.allclose(loaded.predict(X_test), trainer.pipeline.predict(X_test))
+    assert np.allclose(
+        loaded.pipeline.predict(X_test), trainer.pipeline.predict(X_test)
+    )
+
+
+def test_select_best_keeps_lowest_mae(splits: Splits) -> None:
+    X_train, _, y_train, _ = splits
+    grids = {
+        "ridge": {"alpha": [1, 10]},
+        "lasso": {"alpha": [0.03]},
+        "knn": {"n_neighbors": [10]},
+        "linear_svr": {"C": [1]},
+        "huber": {"epsilon": [1.35]},
+    }
+    trainer = Trainer()
+    table = trainer.select_best(candidate_models(grids), X_train, y_train)
+    assert trainer.model_name == table["mae"].idxmin()
+    assert len(table) == 5
+
+
+def test_out_of_fold_predictions_cover_every_row(splits: Splits) -> None:
+    X_train, _, y_train, _ = splits
+    trainer = Trainer()
+    trainer.fit(Ridge(), X_train, y_train)
+    assert trainer.out_of_fold_predictions(X_train, y_train).shape == (len(X_train),)
