@@ -1,6 +1,7 @@
 """Loading, cleaning and splitting the data."""
 
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -28,6 +29,20 @@ class DatasetLoader:
         self.pass_mark = pass_mark
         self.separator = separator
 
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "DatasetLoader":
+        """Create a loader from the project config."""
+        data = config["data"]
+        return cls(
+            config["paths"]["raw_data"],
+            target=data["target"],
+            drop_columns=data["drop_columns"],
+            test_size=data["test_size"],
+            seed=config["seed"],
+            pass_mark=data["pass_mark"],
+            separator=data["separator"],
+        )
+
     def load(self) -> pd.DataFrame:
         """Read the raw CSV file into a DataFrame."""
         return pd.read_csv(self.path, sep=self.separator)
@@ -52,3 +67,9 @@ class DatasetLoader:
             stratify=(y >= self.pass_mark),
         )
         return X_train, X_test, y_train, y_test
+
+    def load_and_split(
+        self,
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+        """Load, clean and split in one call."""
+        return self.split(self.clean(self.load()))
