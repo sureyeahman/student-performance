@@ -94,4 +94,6 @@ We use the Portuguese course file (`student-por.csv`, 649 students).
 
 ## Sources and credits
 
-See `AI_USAGE.md` for the generative AI tools we used.
+- Slides (`reports/slides.html`, `reports/slides.pdf`) built with
+  [deck-kit](https://github.com/kiselas/every-slide-is-code) (MIT licence).
+- See `AI_USAGE.md` for the generative AI tools we used.
